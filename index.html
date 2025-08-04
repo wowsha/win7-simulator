@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Win7 Simulator</title>
+  <!-- Use real Windows 7 style via 7.css -->
+  <link rel="stylesheet" href="https://unpkg.com/7.css/dist/7.css" />
+  <style>
+    html, body { margin:0; padding:0; height:100%; overflow:hidden; background:#008080; font-family:'Segoe UI',Tahoma,sans-serif; }
+    .desktop { position:relative; width:100%; height:100%; overflow:hidden; }
+    /** Taskbar: glass with backdrop-filter (Aero mode) **/
+    #taskbar { position:absolute; left:0; bottom:0; width:100%; height:36px; display:flex; align-items:center;
+               padding:0 6px; background:rgba(255,255,255,0.15); backdrop-filter:blur(6px); border-top:1px solid rgba(200,200,200,0.5); }
+    #taskbar button { margin-right:4px; background:#333; color:#fff; border:none; height:28px; padding:0 8px; font-size:14px; cursor:pointer; border-radius:2px; }
+    #taskbar button.active { background:#0078d4; }
+    .window { position:absolute; display:flex; flex-direction:column; min-width:240px; min-height:180px; max-width:95%; max-height:90%; z-index:1; }
+    .window.active { z-index:100; }
+    .title-bar { cursor:move; user-select:none; }
+    .window-body { overflow:auto; flex:1; padding:.5em; }
+    .resize-handle { position:absolute; width:16px; height:16px; right:2px; bottom:2px; cursor:se-resize; }
+    .address-bar { display:flex; border-bottom:1px solid #999; }
+    .address-bar input { flex:1; border:none; padding:.3em; }
+    .address-bar button { border:none; background:#0078d4; color:#fff; padding:0 8px; cursor:pointer; }
+    .no-select { user-select:none; }
+  </style>
+</head>
+<body>
+  <div class="desktop">
+
+    <div id="win-explorer" class="window glass" style="top:60px; left:60px; display:flex;">
+      <div class="title-bar"><div class="title-bar-text">Explorer</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
+      <div class="window-body"><ul style="padding-left:1em;"><li>Documents</li><li>Pictures</li><li>Music</li></ul></div>
+      <div class="resize-handle"></div>
+    </div>
+
+    <div id="win-chess" class="window glass" style="top:120px; left:360px; display:flex;">
+      <div class="title-bar"><div class="title-bar-text">Lichess TV</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
+      <div class="window-body" style="padding:0; display:flex;"><iframe src="https://lichess.org/tv/frame?theme=auto&bg=auto" sandbox="allow-same-origin allow-popups allow-top-navigation"></iframe></div>
+      <div class="resize-handle"></div>
+    </div>
+
+    <div id="win-browser" class="window glass" style="top:180px; left:660px; display:flex;">
+      <div class="title-bar"><div class="title-bar-text">Web Browser</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
+      <div class="window-body" style="flex-direction:column;">
+        <div class="address-bar"><input type="textbox" id="browser-address" placeholder="https://example.com"/><button id="browser-go">Go</button></div>
+        <iframe id="browser-frame" sandbox="allow-same-origin allow-popups allow-scripts" style="border:0; flex:1;"></iframe>
+      </div>
+      <div class="resize-handle"></div>
+    </div>
+
+    <div id="win-settings" class="window" style="top:80px; left:960px; display:flex;">
+      <div class="title-bar"><div class="title-bar-text">Settings</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
+      <div class="window-body"><label><input type="checkbox" id="aero-toggle"/> Enable Aero (glass theme)</label></div>
+      <div class="resize-handle"></div>
+    </div>
+
+  </div>
+
+  <div id="taskbar">
+    <button data-win="win-explorer">📁 Explorer</button>
+    <button data-win="win-chess">♟️ Lichess TV</button>
+    <button data-win="win-browser">🌐 Browser</button>
+    <button data-win="win-settings">⚙️ Settings</button>
+  </div>
+
+<script>
+(function(){
+  const wins = Array.from(document.querySelectorAll('.window'));
+  const btns = Array.from(document.querySelectorAll('#taskbar button'));
+  const aero = document.getElementById('aero-toggle');
+  let topZ = 10;
+
+  function inView(el) {
+    const vpW = window.innerWidth;
+    const vpH = window.innerHeight;
+    const r = el.getBoundingClientRect();
+    const w = r.width, h = r.height;
+    let x = r.left, y = r.top;
+
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x + w > vpW) x = Math.max(0, vpW - w);
+    if (y + h > vpH - 36) y = Math.max(0, vpH - 36 - h);
+
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+  }
+
+  function moveToFront(win) {
+    wins.forEach(w => w.classList.remove('active'));
+    win.classList.add('active');
+    win.style.zIndex = ++topZ;
+  }
+
+  btns.forEach(b => {
+    const w = document.getElementById(b.dataset.win);
+    w.style.display = 'none';
+    b.addEventListener('click', () => {
+      const open = w.style.display === 'flex';
+      w.style.display = open ? 'none' : 'flex';
+      b.classList.toggle('active', !open);
+      if (!open) {
+        moveToFront(w);
+        inView(w);
+      }
+    });
+  });
+
+  document.querySelectorAll('.title-bar-controls button').forEach(b => {
+    b.addEventListener('click', e => {
+      const w = e.target.closest('.window');
+      w.style.display = 'none';
+      document.querySelector(`#taskbar button[data-win="${w.id}"]`).classList.remove('active');
+    });
+  });
+
+  wins.forEach(w => {
+    const bar = w.querySelector('.title-bar');
+    bar.addEventListener('mousedown', e => {
+      e.preventDefault();
+      moveToFront(w);
+      const rect = w.getBoundingClientRect();
+      const sx = e.clientX, sy = e.clientY, ox = rect.left, oy = rect.top;
+      document.body.classList.add('no-select');
+      function onMouse(e2) {
+        w.style.left = ox + (e2.clientX - sx) + 'px';
+        w.style.top  = oy + (e2.clientY - sy) + 'px';
+      }
+      document.addEventListener('mousemove', onMouse);
+      document.addEventListener('mouseup', () => { document.removeEventListener('mousemove', onMouse); document.body.classList.remove('no-select'); }, { once:true });
+    });
+  });
+
+  wins.forEach(w => {
+    const rh = w.querySelector('.resize-handle');
+    rh.addEventListener('mousedown', e => {
+      e.stopPropagation(); e.preventDefault();
+      moveToFront(w);
+      const rect = w.getBoundingClientRect();
+      const sx = e.clientX, sy = e.clientY, ow = rect.width, oh = rect.height;
+      document.body.classList.add('no-select');
+      function onMouse(e2) {
+        const nw = Math.max(240, ow + (e2.clientX - sx));
+        const nh = Math.max(180, oh + (e2.clientY - sy));
+        w.style.width = nw + 'px'; w.style.height = nh + 'px';
+      }
+      document.addEventListener('mousemove', onMouse);
+      document.addEventListener('mouseup', () => { document.removeEventListener('mousemove', onMouse); document.body.classList.remove('no-select'); }, { once:true });
+    });
+  });
+
+  document.getElementById('browser-go').addEventListener('click', () => {
+    const addr = document.getElementById('browser-address').value.trim();
+    if (!addr) return;
+    const src = addr.match(/^https?:/i) ? addr : 'https://' + addr;
+    document.getElementById('browser-frame').src = src;
+  });
+
+  aero.addEventListener('change', () => {
+    wins.forEach(w => {
+      w.classList.toggle('glass', aero.checked);
+    });
+    const tb = document.getElementById('taskbar');
+    tb.style.background = aero.checked ? 'rgba(255,255,255,0.15)' : '#313131';
+    tb.style.backdropFilter = aero.checked ? 'blur(6px)' : 'none';
+  });
+
+  window.addEventListener('resize', () => { wins.forEach(w => { if (w.style.display === 'flex') inView(w); }); });
+
+  // Open Explorer by default
+  document.querySelector('[data-win="win-explorer"]').click();
+})();
+</script>
+</body>
+</html>
