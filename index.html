@@ -2,174 +2,913 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Win7 Simulator</title>
-  <!-- Use real Windows 7 style via 7.css -->
+  <title>Windows 7 Simulator – Full Suite with Background</title>
+
+  <!-- 7.css for Windows 7 style -->
   <link rel="stylesheet" href="https://unpkg.com/7.css/dist/7.css" />
+
   <style>
-    html, body { margin:0; padding:0; height:100%; overflow:hidden; background:#008080; font-family:'Segoe UI',Tahoma,sans-serif; }
-    .desktop { position:relative; width:100%; height:100%; overflow:hidden; }
-    /** Taskbar: glass with backdrop-filter (Aero mode) **/
-    #taskbar { position:absolute; left:0; bottom:0; width:100%; height:36px; display:flex; align-items:center;
-               padding:0 6px; background:rgba(255,255,255,0.15); backdrop-filter:blur(6px); border-top:1px solid rgba(200,200,200,0.5); }
-    #taskbar button { margin-right:4px; background:#333; color:#fff; border:none; height:28px; padding:0 8px; font-size:14px; cursor:pointer; border-radius:2px; }
-    #taskbar button.active { background:#0078d4; }
-    .window { position:absolute; display:flex; flex-direction:column; min-width:240px; min-height:180px; max-width:95%; max-height:90%; z-index:1; }
-    .window.active { z-index:100; }
-    .title-bar { cursor:move; user-select:none; }
-    .window-body { overflow:auto; flex:1; padding:.5em; }
-    .resize-handle { position:absolute; width:16px; height:16px; right:2px; bottom:2px; cursor:se-resize; }
-    .address-bar { display:flex; border-bottom:1px solid #999; }
-    .address-bar input { flex:1; border:none; padding:.3em; }
-    .address-bar button { border:none; background:#0078d4; color:#fff; padding:0 8px; cursor:pointer; }
-    .no-select { user-select:none; }
+    /* Desktop background */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #008080; /* fallback */
+    }
+    .desktop {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: url('win7.png') center/cover no-repeat;
+      user-select: none;
+    }
+
+    /* Windows */
+    .window {
+      position: absolute;
+      display: none;
+      flex-direction: column;
+      box-sizing: border-box;
+      min-width: 240px;
+      min-height: 180px;
+      max-width: 95%;
+      max-height: 90%;
+      z-index: 1;
+      border-radius: 4px;
+      user-select: none;
+    }
+    .window.active {
+      z-index: 100;
+    }
+    .title-bar {
+      cursor: move;
+      user-select: none;
+    }
+    .window-body {
+      overflow: auto;
+      flex: 1;
+      padding: 0.5em;
+      background: #fff;
+    }
+    .resize-handle {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      right: 2px;
+      bottom: 2px;
+      cursor: se-resize;
+      user-select: none;
+    }
+
+    /* Taskbar */
+    #taskbar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      padding-left: 4px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(6px);
+      border-top: 1px solid rgba(200, 200, 200, 0.5);
+      user-select: none;
+    }
+    #taskbar button {
+      margin-right: 4px;
+      background: #333;
+      color: #fff;
+      border: none;
+      height: 28px;
+      padding: 0 8px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 2px;
+      user-select: none;
+    }
+    #taskbar button.active {
+      background: #0078d4;
+    }
+
+    /* Start menu */
+    #start-menu-root {
+      position: absolute;
+      display: none;
+      width: 200px;
+      background: rgba(236, 236, 236, 1);
+      border: 2px solid #000;
+      bottom: 36px;
+      left: 4px;
+      padding: 4px 0;
+      box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(6px);
+      user-select: none;
+      z-index: 200;
+    }
+    #start-menu-root ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    #start-menu-root li {
+      padding: 6px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      color: #111;
+      user-select: none;
+    }
+    #start-menu-root li:hover {
+      background: #0062bf;
+      color: #fff;
+    }
+
+    /* Notepad textarea */
+    #notepad-text {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      border: none;
+      resize: none;
+      outline: none;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 4px;
+    }
+
+    /* Minesweeper */
+    #ms-info {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    #ms-grid {
+      display: grid;
+      justify-content: center;
+      user-select: none;
+    }
+    #ms-grid button {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      margin: 2px;
+      font-size: 18px;
+      line-height: 0.9;
+      background: #ccc;
+      border: 1px solid #999;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Paint toolbar colors */
+    #paint-colors button {
+      width: 24px;
+      height: 24px;
+      margin-right: 4px;
+      border: 1px solid #444;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .no-select {
+      user-select: none;
+    }
   </style>
 </head>
+
 <body>
   <div class="desktop">
 
-    <div id="win-explorer" class="window glass" style="top:60px; left:60px; display:flex;">
-      <div class="title-bar"><div class="title-bar-text">Explorer</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
-      <div class="window-body"><ul style="padding-left:1em;"><li>Documents</li><li>Pictures</li><li>Music</li></ul></div>
-      <div class="resize-handle"></div>
-    </div>
-
-    <div id="win-chess" class="window glass" style="top:120px; left:360px; display:flex;">
-      <div class="title-bar"><div class="title-bar-text">Lichess TV</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
-      <div class="window-body" style="padding:0; display:flex;"><iframe src="https://lichess.org/tv/frame?theme=auto&bg=auto" sandbox="allow-same-origin allow-popups allow-top-navigation"></iframe></div>
-      <div class="resize-handle"></div>
-    </div>
-
-    <div id="win-browser" class="window glass" style="top:180px; left:660px; display:flex;">
-      <div class="title-bar"><div class="title-bar-text">Web Browser</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
-      <div class="window-body" style="flex-direction:column;">
-        <div class="address-bar"><input type="textbox" id="browser-address" placeholder="https://example.com"/><button id="browser-go">Go</button></div>
-        <iframe id="browser-frame" sandbox="allow-same-origin allow-popups allow-scripts" style="border:0; flex:1;"></iframe>
+    <!-- Explorer -->
+    <div id="win-explorer" class="window glass" style="top: 60px; left: 60px;">
+      <div class="title-bar">
+        <div class="title-bar-text">Explorer</div>
+        <div class="title-bar-controls"><button aria-label="Close"></button></div>
+      </div>
+      <div class="window-body">
+        <ul>
+          <li>Documents</li>
+          <li>Pictures</li>
+          <li>Music</li>
+        </ul>
       </div>
       <div class="resize-handle"></div>
     </div>
 
-    <div id="win-settings" class="window" style="top:80px; left:960px; display:flex;">
-      <div class="title-bar"><div class="title-bar-text">Settings</div><div class="title-bar-controls"><button aria-label="Close"></button></div></div>
-      <div class="window-body"><label><input type="checkbox" id="aero-toggle"/> Enable Aero (glass theme)</label></div>
+    <!-- Chess (Lichess TV) -->
+    <div id="win-chess" class="window glass" style="top: 120px; left: 260px;">
+      <div class="title-bar">
+        <div class="title-bar-text">Lichess TV</div>
+        <div class="title-bar-controls"><button aria-label="Close"></button></div>
+      </div>
+      <div class="window-body" style="padding:0; display:flex;">
+        <iframe
+          src="https://lichess.org/tv/frame?theme=auto&bg=auto"
+          sandbox="allow-same-origin allow-popups allow-scripts"
+          style="flex:1; border:0;"
+        ></iframe>
+      </div>
       <div class="resize-handle"></div>
     </div>
 
+    <!-- Web Browser -->
+    <div id="win-browser" class="window glass" style="top: 180px; left: 460px;">
+      <div class="title-bar">
+        <div class="title-bar-text">Web Browser</div>
+        <div class="title-bar-controls"><button aria-label="Close"></button></div>
+      </div>
+      <div class="window-body" style="display:flex; flex-direction: column; padding: 0;">
+        <div style="display:flex; border-bottom:1px solid #999;">
+          <input
+            type="text"
+            id="browser-address"
+            placeholder="https://example.com"
+            style="flex:1; padding: 0.3em; border: none; font-size: 14px"
+          />
+          <button
+            id="browser-go"
+            style="padding: 0.3em; background: #0078d4; color: #fff; border: none; font-size: 14px"
+          >
+            Go
+          </button>
+        </div>
+        <iframe
+          id="browser-frame"
+          sandbox="allow-same-origin allow-popups allow-scripts"
+          style="border: 0; flex: 1"
+        ></iframe>
+      </div>
+      <div class="resize-handle"></div>
+    </div>
+
+    <!-- Paint -->
+    <div id="win-paint" class="window glass" style="top: 240px; left: 60px;">
+      <div class="title-bar">
+        <div class="title-bar-text">Paint</div>
+        <div class="title-bar-controls"><button aria-label="Close"></button></div>
+      </div>
+      <div
+        class="window-body"
+        style="display: flex; flex-direction: column; padding: 0"
+      >
+        <div id="paint-colors" style="padding: 4px">
+          <button style="background: #000" data-color="#000"></button>
+          <button style="background: #ff0000" data-color="#ff0000"></button>
+          <button style="background: #00ff00" data-color="#00ff00"></button>
+          <button style="background: #0000ff" data-color="#0000ff"></button>
+          <button data-color="clear" style="background: #fafafa">✖</button>
+        </div>
+        <canvas
+          id="paint-canvas"
+          style="flex: 1; touch-action: none"
+        ></canvas>
+      </div>
+      <div class="resize-handle"></div>
+    </div>
+
+    <!-- Calculator -->
+    <div id="win-calculator" class="window glass" style="top: 240px; left: 260px;">
+      <div class="title-bar">
+        <div class="title-bar-text">Calculator</div>
+        <div class="title-bar-controls"><button aria-label="Close"></button></div>
+      </div>
+      <div class="window-body" style="display: flex; flex-direction: column; padding: 6px">
+        <div
+          id="calc-display"
+          style="
+            font-size: 1.5em;
+            text-align: right;
+            padding-right: 6px;
+            background: #fff;
+            border: 1px solid #999;
+            height: 40px;
+          "
+        >
+          0
+        </div>
+        <div
+          style="
+            margin-top: 6px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: 40px;
+            gap: 4px;
+          "
+        >
+          <button data-key="7">7</button><button data-key="8">8</button
+          ><button data-key="9">9</button><button data-key="/">÷</button>
+          <button data-key="4">4</button><button data-key="5">5</button
+          ><button data-key="6">6</button><button data-key="*">×</button>
+          <button data-key="1">1</button><button data-key="2">2</button
+          ><button data-key="3">3</button><button data-key="-">−</button>
+          <button data-key="0">0</button><button data-key=".">.</button
+          ><button id="calc-equal">=</button><button data-key="+">+</button>
+          <button id="calc-back">⌫</button><button id="calc-clear">C</button>
+          <div style="visibility: hidden"></div>
+          <div style="visibility: hidden"></div>
+        </div>
+      </div>
+      <div class="resize-handle"></div>
+    </div>
+
+    <!-- Notepad -->
+    <div id="win-notepad" class="window glass" style="top: 140px; left: 140px;">
+      <div class="title-bar">
+        <div class="title-bar-text">Notepad</div>
+        <div class="title-bar-controls"><button aria-label="Close"></button></div>
+      </div>
+      <div class="window-body" style="padding: 0">
+        <textarea
+          id="notepad-text"
+          placeholder="Type here..."
+          spellcheck="false"
+        ></textarea>
+      </div>
+      <div class="resize-handle"></div>
+    </div>
+
+    <!-- Minesweeper -->
+    <div id="win-minesweeper" class="window glass" style="top: 180px; left: 180px;">
+      <div class="title-bar">
+        <div class="title-bar-text">Minesweeper</div>
+        <div class="title-bar-controls"><button aria-label="Close"></button></div>
+      </div>
+      <div class="window-body" style="padding: 0.5em">
+        <div id="ms-info">Flags: 0 / 10</div>
+        <div id="ms-grid"></div>
+      </div>
+      <div class="resize-handle"></div>
+    </div>
+
+    <!-- Settings -->
+    <div id="win-settings" class="window" style="top: 80px; left: 960px;">
+      <div class="title-bar">
+        <div class="title-bar-text">Settings</div>
+        <div class="title-bar-controls"><button aria-label="Close"></button></div>
+      </div>
+      <div class="window-body">
+        <label
+          ><input type="checkbox" id="aero-toggle" />
+          Enable Aero (glass theme)</label
+        >
+      </div>
+      <div class="resize-handle"></div>
+    </div>
+
+    <!-- Start Menu -->
+    <div id="start-menu-root" class="glass">
+      <ul>
+        <li data-win="win-explorer">📁 Explorer</li>
+        <li data-win="win-chess">♟️ Lichess TV</li>
+        <li data-win="win-browser">🌐 Browser</li>
+        <li data-win="win-paint">🎨 Paint</li>
+        <li data-win="win-calculator">🧮 Calculator</li>
+        <li data-win="win-notepad">📝 Notepad</li>
+        <li data-win="win-minesweeper">💣 Minesweeper</li>
+        <li data-win="win-settings">⚙️ Settings</li>
+      </ul>
+    </div>
   </div>
 
+  <!-- Taskbar -->
   <div id="taskbar">
+    <button id="start-btn">Start</button>
     <button data-win="win-explorer">📁 Explorer</button>
     <button data-win="win-chess">♟️ Lichess TV</button>
     <button data-win="win-browser">🌐 Browser</button>
+    <button data-win="win-paint">🎨 Paint</button>
+    <button data-win="win-calculator">🧮 Calc</button>
     <button data-win="win-settings">⚙️ Settings</button>
   </div>
 
-<script>
-(function(){
-  const wins = Array.from(document.querySelectorAll('.window'));
-  const btns = Array.from(document.querySelectorAll('#taskbar button'));
-  const aero = document.getElementById('aero-toggle');
-  let topZ = 10;
+  <script>
+    (function () {
+      // Utilities & state
+      const wins = Array.from(document.querySelectorAll('.window'));
+      const tbButtons = Array.from(document.querySelectorAll('#taskbar button[data-win]'));
+      const startBtn = document.getElementById('start-btn');
+      const startMenu = document.getElementById('start-menu-root');
+      const aeroToggle = document.getElementById('aero-toggle');
+      let zIndexCounter = 10;
+      const NOTE_KEY = 'win7-sim-notepad';
 
-  function inView(el) {
-    const vpW = window.innerWidth;
-    const vpH = window.innerHeight;
-    const r = el.getBoundingClientRect();
-    const w = r.width, h = r.height;
-    let x = r.left, y = r.top;
-
-    if (x < 0) x = 0;
-    if (y < 0) y = 0;
-    if (x + w > vpW) x = Math.max(0, vpW - w);
-    if (y + h > vpH - 36) y = Math.max(0, vpH - 36 - h);
-
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-  }
-
-  function moveToFront(win) {
-    wins.forEach(w => w.classList.remove('active'));
-    win.classList.add('active');
-    win.style.zIndex = ++topZ;
-  }
-
-  btns.forEach(b => {
-    const w = document.getElementById(b.dataset.win);
-    w.style.display = 'none';
-    b.addEventListener('click', () => {
-      const open = w.style.display === 'flex';
-      w.style.display = open ? 'none' : 'flex';
-      b.classList.toggle('active', !open);
-      if (!open) {
-        moveToFront(w);
-        inView(w);
+      // Clamp windows inside viewport
+      function clampToViewport(el) {
+        const vpW = window.innerWidth,
+          vpH = window.innerHeight;
+        const r = el.getBoundingClientRect();
+        const w = r.width,
+          h = r.height;
+        let x = r.left,
+          y = r.top;
+        x = Math.min(Math.max(0, x), vpW - w);
+        y = Math.min(Math.max(0, y), vpH - 36 - h);
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
       }
-    });
-  });
 
-  document.querySelectorAll('.title-bar-controls button').forEach(b => {
-    b.addEventListener('click', e => {
-      const w = e.target.closest('.window');
-      w.style.display = 'none';
-      document.querySelector(`#taskbar button[data-win="${w.id}"]`).classList.remove('active');
-    });
-  });
-
-  wins.forEach(w => {
-    const bar = w.querySelector('.title-bar');
-    bar.addEventListener('mousedown', e => {
-      e.preventDefault();
-      moveToFront(w);
-      const rect = w.getBoundingClientRect();
-      const sx = e.clientX, sy = e.clientY, ox = rect.left, oy = rect.top;
-      document.body.classList.add('no-select');
-      function onMouse(e2) {
-        w.style.left = ox + (e2.clientX - sx) + 'px';
-        w.style.top  = oy + (e2.clientY - sy) + 'px';
+      // Focus window
+      function focusWindow(win) {
+        wins.forEach((w) => w.classList.remove('active'));
+        win.classList.add('active');
+        win.style.zIndex = ++zIndexCounter;
       }
-      document.addEventListener('mousemove', onMouse);
-      document.addEventListener('mouseup', () => { document.removeEventListener('mousemove', onMouse); document.body.classList.remove('no-select'); }, { once:true });
-    });
-  });
 
-  wins.forEach(w => {
-    const rh = w.querySelector('.resize-handle');
-    rh.addEventListener('mousedown', e => {
-      e.stopPropagation(); e.preventDefault();
-      moveToFront(w);
-      const rect = w.getBoundingClientRect();
-      const sx = e.clientX, sy = e.clientY, ow = rect.width, oh = rect.height;
-      document.body.classList.add('no-select');
-      function onMouse(e2) {
-        const nw = Math.max(240, ow + (e2.clientX - sx));
-        const nh = Math.max(180, oh + (e2.clientY - sy));
-        w.style.width = nw + 'px'; w.style.height = nh + 'px';
+      // Open/close from taskbar buttons
+      tbButtons.forEach((btn) => {
+        const win = document.getElementById(btn.dataset.win);
+        win.style.display = 'none';
+        btn.addEventListener('click', () => {
+          const isOpen = win.style.display === 'flex';
+          win.style.display = isOpen ? 'none' : 'flex';
+          btn.classList.toggle('active', !isOpen);
+          if (!isOpen) {
+            focusWindow(win);
+            clampToViewport(win);
+            if (win.id === 'win-notepad') loadNotepad();
+            if (win.id === 'win-minesweeper') initMinesweeper();
+          }
+        });
+      });
+
+      // Start menu toggle
+      startBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const open = startMenu.style.display === 'block';
+        startMenu.style.display = open ? 'none' : 'block';
+        startBtn.classList.toggle('active', !open);
+      });
+
+      // Close start menu on outside click
+      document.addEventListener('click', (e) => {
+        if (!startBtn.contains(e.target) && !startMenu.contains(e.target)) {
+          startMenu.style.display = 'none';
+          startBtn.classList.remove('active');
+        }
+      });
+
+      // Launch apps from start menu
+      startMenu.querySelectorAll('li').forEach((li) => {
+        const win = document.getElementById(li.dataset.win);
+        li.addEventListener('click', () => {
+          startMenu.style.display = 'none';
+          startBtn.classList.remove('active');
+          tbButtons
+            .find((b) => b.dataset.win === li.dataset.win)
+            ?.classList.remove('active');
+          win.style.display = 'flex';
+          focusWindow(win);
+          clampToViewport(win);
+          if (li.dataset.win === 'win-notepad') loadNotepad();
+          if (li.dataset.win === 'win-minesweeper') initMinesweeper();
+        });
+      });
+
+      // Close buttons
+      document.querySelectorAll('.title-bar-controls button').forEach((b) => {
+        b.addEventListener('click', (e) => {
+          const win = e.target.closest('.window');
+          win.style.display = 'none';
+          tbButtons.find((b2) => b2.dataset.win === win.id)?.classList.remove('active');
+        });
+      });
+
+      // Drag windows
+      wins.forEach((win) => {
+        const bar = win.querySelector('.title-bar');
+        bar.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          focusWindow(win);
+          const rect = win.getBoundingClientRect();
+          const startX = e.clientX,
+            startY = e.clientY;
+          const startLeft = rect.left,
+            startTop = rect.top;
+
+          function onMouseMove(e) {
+            let newX = startLeft + e.clientX - startX;
+            let newY = startTop + e.clientY - startY;
+            // Clamp
+            const vpW = window.innerWidth,
+              vpH = window.innerHeight;
+            newX = Math.min(Math.max(0, newX), vpW - rect.width);
+            newY = Math.min(Math.max(0, newY), vpH - 36 - rect.height);
+            win.style.left = newX + 'px';
+            win.style.top = newY + 'px';
+          }
+
+          function onMouseUp() {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+          }
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+      });
+
+      // Resize windows
+      wins.forEach((win) => {
+        const handle = win.querySelector('.resize-handle');
+        handle.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          focusWindow(win);
+          const rect = win.getBoundingClientRect();
+          const startX = e.clientX,
+            startY = e.clientY;
+          const startW = rect.width,
+            startH = rect.height;
+
+          function onMouseMove(e) {
+            let newW = startW + e.clientX - startX;
+            let newH = startH + e.clientY - startY;
+
+            // Min sizes
+            newW = Math.max(240, newW);
+            newH = Math.max(180, newH);
+
+            // Max sizes (viewport)
+            const vpW = window.innerWidth,
+              vpH = window.innerHeight - 36;
+            newW = Math.min(newW, vpW - rect.left);
+            newH = Math.min(newH, vpH - rect.top);
+
+            win.style.width = newW + 'px';
+            win.style.height = newH + 'px';
+
+            // For some apps, update internal elements
+            if (win.id === 'win-paint') {
+              const canvas = document.getElementById('paint-canvas');
+              canvas.width = newW - 12;
+              canvas.height = newH - 72;
+            }
+            if (win.id === 'win-minesweeper') {
+              updateMinesweeperGrid();
+            }
+          }
+
+          function onMouseUp() {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+          }
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+      });
+
+      // Aero toggle (glass theme)
+      function applyAero(enabled) {
+        wins.forEach((w) => {
+          if (enabled) {
+            w.classList.add('glass');
+          } else {
+            w.classList.remove('glass');
+          }
+        });
+        // Taskbar glass effect
+        const taskbar = document.getElementById('taskbar');
+        if (enabled) {
+          taskbar.style.background = 'rgba(255,255,255,0.15)';
+          taskbar.style.backdropFilter = 'blur(6px)';
+          taskbar.style.borderTop = '1px solid rgba(200,200,200,0.5)';
+        } else {
+          taskbar.style.background = '#333';
+          taskbar.style.backdropFilter = '';
+          taskbar.style.borderTop = 'none';
+        }
       }
-      document.addEventListener('mousemove', onMouse);
-      document.addEventListener('mouseup', () => { document.removeEventListener('mousemove', onMouse); document.body.classList.remove('no-select'); }, { once:true });
-    });
-  });
 
-  document.getElementById('browser-go').addEventListener('click', () => {
-    const addr = document.getElementById('browser-address').value.trim();
-    if (!addr) return;
-    const src = addr.match(/^https?:/i) ? addr : 'https://' + addr;
-    document.getElementById('browser-frame').src = src;
-  });
+      aeroToggle.addEventListener('change', (e) => {
+        applyAero(e.target.checked);
+      });
 
-  aero.addEventListener('change', () => {
-    wins.forEach(w => {
-      w.classList.toggle('glass', aero.checked);
-    });
-    const tb = document.getElementById('taskbar');
-    tb.style.background = aero.checked ? 'rgba(255,255,255,0.15)' : '#313131';
-    tb.style.backdropFilter = aero.checked ? 'blur(6px)' : 'none';
-  });
+      // Paint logic
+      const paintCanvas = document.getElementById('paint-canvas');
+      const ctx = paintCanvas.getContext('2d');
+      let paintColor = '#000';
+      let painting = false;
 
-  window.addEventListener('resize', () => { wins.forEach(w => { if (w.style.display === 'flex') inView(w); }); });
+      function resizePaintCanvas() {
+        const win = document.getElementById('win-paint');
+        const rect = win.getBoundingClientRect();
+        paintCanvas.width = rect.width - 12;
+        paintCanvas.height = rect.height - 72;
+      }
+      resizePaintCanvas();
 
-  // Open Explorer by default
-  document.querySelector('[data-win="win-explorer"]').click();
-})();
-</script>
+      document.getElementById('paint-colors').addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+          const c = e.target.dataset.color;
+          if (c === 'clear') {
+            ctx.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
+          } else {
+            paintColor = c;
+          }
+        }
+      });
+
+      paintCanvas.addEventListener('pointerdown', (e) => {
+        painting = true;
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+      });
+      paintCanvas.addEventListener('pointermove', (e) => {
+        if (painting) {
+          ctx.strokeStyle = paintColor;
+          ctx.lineWidth = 3;
+          ctx.lineCap = 'round';
+          ctx.lineTo(e.offsetX, e.offsetY);
+          ctx.stroke();
+        }
+      });
+      paintCanvas.addEventListener('pointerup', () => {
+        painting = false;
+      });
+      paintCanvas.addEventListener('pointerleave', () => {
+        painting = false;
+      });
+
+      // Calculator logic
+      const calcDisplay = document.getElementById('calc-display');
+      let calcExpression = '';
+
+      function calcUpdateDisplay() {
+        calcDisplay.textContent = calcExpression || '0';
+      }
+
+      function calcEvaluate() {
+        try {
+          // eval is unsafe but for this demo it is okay
+          const result = Function('"use strict";return (' + calcExpression + ')')();
+          calcExpression = String(result);
+        } catch {
+          calcExpression = 'Error';
+        }
+        calcUpdateDisplay();
+      }
+
+      document
+        .querySelector('#win-calculator .window-body')
+        .addEventListener('click', (e) => {
+          if (e.target.tagName !== 'BUTTON') return;
+          const key = e.target.dataset.key;
+          if (!key) {
+            if (e.target.id === 'calc-clear') {
+              calcExpression = '';
+              calcUpdateDisplay();
+            } else if (e.target.id === 'calc-back') {
+              calcExpression = calcExpression.slice(0, -1);
+              calcUpdateDisplay();
+            } else if (e.target.id === 'calc-equal') {
+              calcEvaluate();
+            }
+            return;
+          }
+          if ('0123456789.'.includes(key)) {
+            calcExpression += key;
+          } else if ('+-*/'.includes(key)) {
+            if (
+              calcExpression.length > 0 &&
+              !'+-*/'.includes(calcExpression.slice(-1))
+            ) {
+              calcExpression += key;
+            }
+          }
+          calcUpdateDisplay();
+        });
+
+      calcUpdateDisplay();
+
+      // Browser logic
+      const browserAddress = document.getElementById('browser-address');
+      const browserFrame = document.getElementById('browser-frame');
+      const browserGo = document.getElementById('browser-go');
+
+      browserGo.addEventListener('click', () => {
+        let url = browserAddress.value.trim();
+        if (!url) return;
+        if (!/^https?:\/\//.test(url)) url = 'https://' + url;
+        browserFrame.src = url;
+      });
+
+      // Notepad save/load
+      const notepadText = document.getElementById('notepad-text');
+
+      function loadNotepad() {
+        const saved = localStorage.getItem(NOTE_KEY);
+        notepadText.value = saved || '';
+      }
+
+      notepadText.addEventListener('input', () => {
+        localStorage.setItem(NOTE_KEY, notepadText.value);
+      });
+
+      // Minesweeper
+      const msGrid = document.getElementById('ms-grid');
+      const msInfo = document.getElementById('ms-info');
+      const MS_ROWS = 8;
+      const MS_COLS = 8;
+      const MS_MINES = 10;
+      let msBoard = [];
+      let msRevealed = [];
+      let msFlags = [];
+      let msGameOver = false;
+
+      function initMinesweeper() {
+        msGrid.style.gridTemplateColumns = `repeat(${MS_COLS}, 32px)`;
+        msGrid.style.gridTemplateRows = `repeat(${MS_ROWS}, 32px)`;
+        msBoard = Array(MS_ROWS)
+          .fill(0)
+          .map(() => Array(MS_COLS).fill(0));
+        msRevealed = Array(MS_ROWS)
+          .fill(0)
+          .map(() => Array(MS_COLS).fill(false));
+        msFlags = Array(MS_ROWS)
+          .fill(0)
+          .map(() => Array(MS_COLS).fill(false));
+        msGameOver = false;
+        placeMines();
+        updateMsInfo();
+        renderMsGrid();
+      }
+
+      function placeMines() {
+        let placed = 0;
+        while (placed < MS_MINES) {
+          const r = Math.floor(Math.random() * MS_ROWS);
+          const c = Math.floor(Math.random() * MS_COLS);
+          if (msBoard[r][c] === 9) continue;
+          msBoard[r][c] = 9;
+          placed++;
+        }
+        for (let r = 0; r < MS_ROWS; r++) {
+          for (let c = 0; c < MS_COLS; c++) {
+            if (msBoard[r][c] !== 9) {
+              msBoard[r][c] = countAdjacentMines(r, c);
+            }
+          }
+        }
+      }
+
+      function countAdjacentMines(r, c) {
+        let count = 0;
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const nr = r + dr,
+              nc = c + dc;
+            if (
+              nr >= 0 &&
+              nr < MS_ROWS &&
+              nc >= 0 &&
+              nc < MS_COLS &&
+              msBoard[nr][nc] === 9
+            ) {
+              count++;
+            }
+          }
+        }
+        return count;
+      }
+
+      function renderMsGrid() {
+        msGrid.innerHTML = '';
+        for (let r = 0; r < MS_ROWS; r++) {
+          for (let c = 0; c < MS_COLS; c++) {
+            const btn = document.createElement('button');
+            btn.dataset.r = r;
+            btn.dataset.c = c;
+            if (msFlags[r][c]) {
+              btn.textContent = '🚩';
+              btn.style.background = '#ffa';
+            } else if (!msRevealed[r][c]) {
+              btn.textContent = '';
+              btn.style.background = '';
+            } else {
+              if (msBoard[r][c] === 9) {
+                btn.textContent = '💣';
+                btn.style.background = '#f88';
+              } else if (msBoard[r][c] === 0) {
+                btn.textContent = '';
+                btn.style.background = '#ddd';
+              } else {
+                btn.textContent = msBoard[r][c];
+                btn.style.color = 'blue';
+                btn.style.background = '#ddd';
+              }
+            }
+            btn.disabled = msRevealed[r][c];
+            btn.style.fontWeight = 'bold';
+            btn.style.fontSize = '18px';
+            btn.style.userSelect = 'none';
+            msGrid.appendChild(btn);
+          }
+        }
+      }
+
+      function revealCell(r, c) {
+        if (r < 0 || r >= MS_ROWS || c < 0 || c >= MS_COLS) return;
+        if (msRevealed[r][c] || msFlags[r][c]) return;
+        msRevealed[r][c] = true;
+        if (msBoard[r][c] === 0) {
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              if (dr !== 0 || dc !== 0) {
+                revealCell(r + dr, c + dc);
+              }
+            }
+          }
+        }
+      }
+
+      function checkWin() {
+        for (let r = 0; r < MS_ROWS; r++) {
+          for (let c = 0; c < MS_COLS; c++) {
+            if (msBoard[r][c] !== 9 && !msRevealed[r][c]) return false;
+          }
+        }
+        return true;
+      }
+
+      function updateMsInfo() {
+        const flagsCount = msFlags.flat().filter(Boolean).length;
+        msInfo.textContent = `Flags: ${flagsCount} / ${MS_MINES}`;
+      }
+
+      msGrid.addEventListener('click', (e) => {
+        if (msGameOver) return;
+        if (e.target.tagName !== 'BUTTON') return;
+        const r = +e.target.dataset.r;
+        const c = +e.target.dataset.c;
+        if (msFlags[r][c]) return; // can't reveal flagged cell
+
+        revealCell(r, c);
+
+        if (msBoard[r][c] === 9) {
+          msGameOver = true;
+          alert('Game Over! You hit a mine.');
+          // Reveal all mines
+          for (let rr = 0; rr < MS_ROWS; rr++) {
+            for (let cc = 0; cc < MS_COLS; cc++) {
+              if (msBoard[rr][cc] === 9) msRevealed[rr][cc] = true;
+            }
+          }
+        } else if (checkWin()) {
+          msGameOver = true;
+          alert('You Win! Congrats!');
+        }
+        renderMsGrid();
+        updateMsInfo();
+      });
+
+      msGrid.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if (msGameOver) return;
+        if (e.target.tagName !== 'BUTTON') return;
+        const r = +e.target.dataset.r;
+        const c = +e.target.dataset.c;
+        if (msRevealed[r][c]) return;
+
+        msFlags[r][c] = !msFlags[r][c];
+        updateMsInfo();
+        renderMsGrid();
+      });
+
+      // Resize minesweeper grid to keep 32px cells
+      function updateMinesweeperGrid() {
+        const win = document.getElementById('win-minesweeper');
+        const rect = win.getBoundingClientRect();
+        const gridWidth = rect.width - 12;
+        const gridHeight = rect.height - 72;
+        const cols = Math.floor(gridWidth / 32);
+        const rows = Math.floor(gridHeight / 32);
+        if (cols >= 8 && rows >= 8) {
+          msGrid.style.gridTemplateColumns = `repeat(${cols}, 32px)`;
+          msGrid.style.gridTemplateRows = `repeat(${rows}, 32px)`;
+        }
+      }
+
+      // Clamp windows to viewport on resize
+      window.addEventListener('resize', () => {
+        wins.forEach((win) => clampToViewport(win));
+        resizePaintCanvas();
+        updateMinesweeperGrid();
+      });
+
+      // Initial setup
+      // Show Explorer and Taskbar apps hidden initially
+      // All windows hidden except Explorer for demo
+      wins.forEach((w) => (w.style.display = 'none'));
+      // Open Explorer by default
+      const explorerWin = document.getElementById('win-explorer');
+      explorerWin.style.display = 'flex';
+      focusWindow(explorerWin);
+
+      // Set up Aero default
+      applyAero(false);
+    })();
+  </script>
 </body>
 </html>
