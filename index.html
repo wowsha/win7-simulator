@@ -176,6 +176,12 @@
     .no-select {
       user-select: none;
     }
+    .taskbar-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  margin: 2px;
+}
   </style>
 </head>
 
@@ -394,11 +400,24 @@
   <!-- Taskbar -->
    <div id="taskbar">
     <button id="start-btn">Start</button>
-    <img src="explorer.png" data-win="win-explorer" title="Explorer">
-    <img src="chess.png" data-win="win-chess" title="Chess">
-    <img src="internet.png" data-win="win-browser" title="Browser">
-    <img src="calculator.ico" data-win="win-calc" title="Calculator">
-    <img src="MSPaint.webp" data-win="win-paint" title="Paint">
+<button data-win="win-paint">
+  <img src="MSPaint.webp" alt="Paint" class="taskbar-icon">
+</button>
+<button data-win="win-browser">
+  <img src="internet.png" alt="Internet" class="taskbar-icon">
+</button>
+
+<button data-win="win-chess">
+  <img src="chess.png" alt="Chess" class="taskbar-icon">
+</button>
+
+<button data-win="win-explorer">
+  <img src="explorer.png" alt="Explorer" class="taskbar-icon">
+</button>
+
+<button data-win="win-calc">
+  <img src="calculator.ico" alt="Calculator" class="taskbar-icon">
+</button>
   </div>
   <script>
     (function () {
