@@ -77,18 +77,22 @@
       border-top: 1px solid rgba(200, 200, 200, 0.5);
       user-select: none;
     }
-    #taskbar button {
-      margin-right: 4px;
-      background: #333;
-      color: #fff;
-      border: none;
-      height: 28px;
-      padding: 0 8px;
-      font-size: 14px;
-      cursor: pointer;
-      border-radius: 2px;
-      user-select: none;
-    }
+   #taskbar button {
+  background: transparent;
+  padding: 0;
+  border: none;
+  height: 36px;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+   #taskbar button img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: crisp-edges;
+}
     #taskbar button.active {
       background: #0078d4;
     }
